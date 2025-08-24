@@ -1,8 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Play, Download, Share2, BookOpen, Users, MessageSquare, Loader2, Volume2, VolumeX, Heart, Star } from 'lucide-react';
 
+// Types
+interface VideoData {
+  id: string;
+  url: string;
+  duration: number;
+  terms_translated: number;
+  confidence: number;
+  originalText: string;
+  timestamp: string;
+}
+
+interface FinancialCategory {
+  title: string;
+  icon: string;
+  topics: string[];
+}
+
+interface BisindoTerm {
+  gesture: string;
+  description: string;
+}
+
 // Mock API function - replace with actual sign language API
-const generateSignVideo = async (text, language = 'BISINDO') => {
+const generateSignVideo = async (text: string) => {
   // Simulate API call delay
   await new Promise(resolve => setTimeout(resolve, 2000));
   
@@ -16,7 +38,7 @@ const generateSignVideo = async (text, language = 'BISINDO') => {
 };
 
 // Financial topics database
-const financialTopics = {
+const financialTopics: Record<string, FinancialCategory> = {
   'basic_banking': {
     title: 'Perbankan Dasar',
     icon: '🏦',
@@ -64,7 +86,7 @@ const financialTopics = {
 };
 
 // BISINDO financial terms glossary
-const bisindoGlossary = {
+const bisindoGlossary: Record<string, BisindoTerm> = {
   'bank': { gesture: '🏦', description: 'Gerakan menunjuk gedung dengan kedua tangan' },
   'uang': { gesture: '💰', description: 'Gerakan menggosok jari seperti menghitung uang' },
   'menabung': { gesture: '📦', description: 'Gerakan memasukkan sesuatu ke wadah' },
@@ -76,14 +98,13 @@ const bisindoGlossary = {
 };
 
 function App() {
-  const [activeTab, setActiveTab] = useState('generate');
-  const [inputText, setInputText] = useState('');
-  const [selectedTopic, setSelectedTopic] = useState('');
-  const [videoData, setVideoData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [favorites, setFavorites] = useState([]);
-  const [audioEnabled, setAudioEnabled] = useState(true);
-  const [history, setHistory] = useState([]);
+  const [activeTab, setActiveTab] = useState<string>('generate');
+  const [inputText, setInputText] = useState<string>('');
+  const [videoData, setVideoData] = useState<VideoData | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [favorites, setFavorites] = useState<VideoData[]>([]);
+  const [audioEnabled, setAudioEnabled] = useState<boolean>(true);
+  const [history, setHistory] = useState<VideoData[]>([]);
 
   // Load favorites from localStorage
   useEffect(() => {
@@ -124,12 +145,11 @@ function App() {
     setLoading(false);
   };
 
-  const handleTopicSelect = (topic) => {
+  const handleTopicSelect = (topic: string) => {
     setInputText(topic);
-    setSelectedTopic(topic);
   };
 
-  const toggleFavorite = (videoData) => {
+  const toggleFavorite = (videoData: VideoData) => {
     const newFavorites = favorites.some(fav => fav.id === videoData.id)
       ? favorites.filter(fav => fav.id !== videoData.id)
       : [...favorites, videoData];
@@ -138,11 +158,11 @@ function App() {
     localStorage.setItem('teman-tuli-favorites', JSON.stringify(newFavorites));
   };
 
-  const isFavorite = (videoData) => {
+  const isFavorite = (videoData: VideoData | null) => {
     return favorites.some(fav => fav.id === videoData?.id);
   };
 
-  const shareVideo = async (videoData) => {
+  const shareVideo = async (videoData: VideoData) => {
     if (navigator.share) {
       try {
         await navigator.share({
@@ -235,7 +255,7 @@ function App() {
                     onChange={(e) => setInputText(e.target.value)}
                     placeholder="Contoh: Bagaimana cara membuka rekening bank?"
                     className="w-full p-4 border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    rows="4"
+                    rows={4}
                   />
                 </div>
 
