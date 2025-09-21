@@ -28,10 +28,28 @@ const generateSignVideo = async (text: string) => {
   // Simulate API call delay
   await new Promise(resolve => setTimeout(resolve, 2000));
   
-  // Mock video response - in real implementation, this would call actual API
+  // Map topics to specific video URLs and durations
+  const videoMapping: Record<string, { url: string; duration: number }> = {
+    'Cara Buka Rekening Bank Saqu': { 
+      url: 'https://youtube.com/shorts/AsPBXY4I3rk', 
+      duration: 8 
+    },
+    'Cara Saku Nabung': { 
+      url: 'https://youtube.com/shorts/y6amMXKXhRk', 
+      duration: 4 
+    },
+    'Cara Kirim dan Bayar': { 
+      url: 'https://youtube.com/shorts/P470yoZInCs', 
+      duration: 4 
+    }
+  };
+  
+  // Get the appropriate video data based on the text, fallback to first video
+  const videoData = videoMapping[text] || videoMapping['Cara Buka Rekening Bank Saqu'];
+  
   return {
-    url: `https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4`,
-    duration: 30,
+    url: videoData.url,
+    duration: videoData.duration,
     terms_translated: text.split(' ').length,
     confidence: 0.95
   };
@@ -123,6 +141,7 @@ function App() {
     if (!inputText.trim()) return;
 
     setLoading(true);
+    setVideoData(null); // Clear previous video data
     try {
       const video = await generateSignVideo(inputText);
       const newVideoData = {
@@ -283,12 +302,11 @@ function App() {
               {/* Quick Topics */}
               <div className="mt-6">
                 <h3 className="text-sm font-medium text-gray-700 mb-3">💡 Quick Topics:</h3>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 gap-2">
                   {[
-                    'Cara buka rekening',
-                    'Transfer uang',
-                    'Menabung rutin',
-                    'Investasi aman'
+                    'Cara Buka Rekening Bank Saqu',
+                    'Cara Saku Nabung',
+                    'Cara Kirim dan Bayar'
                   ].map(topic => (
                     <button
                       key={topic}
@@ -350,14 +368,37 @@ function App() {
               {videoData && (
                 <div className="space-y-4">
                   <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                    <video
-                      controls
-                      className="w-full h-full"
-                      poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f3f4f6'/%3E%3Ctext x='200' y='150' text-anchor='middle' font-family='Arial' font-size='16' fill='%236b7280'%3ESign Language Video%3C/text%3E%3C/svg%3E"
-                    >
-                      <source src={videoData.url} type="video/mp4" />
-                      Your browser does not support the video tag.
-                    </video>
+                    {videoData.url.includes('youtube.com') || videoData.url.includes('youtu.be') ? (
+                      <iframe
+                        src={(() => {
+                          if (videoData.url.includes('/shorts/')) {
+                            // Handle YouTube Shorts format: youtube.com/shorts/VIDEO_ID -> youtube.com/embed/VIDEO_ID
+                            return videoData.url.replace('/shorts/', '/embed/');
+                          } else if (videoData.url.includes('watch?v=')) {
+                            // Handle regular YouTube format: youtube.com/watch?v=VIDEO_ID -> youtube.com/embed/VIDEO_ID
+                            return videoData.url.replace('watch?v=', 'embed/');
+                          } else if (videoData.url.includes('youtu.be/')) {
+                            // Handle youtu.be format: youtu.be/VIDEO_ID -> youtube.com/embed/VIDEO_ID
+                            return videoData.url.replace('youtu.be/', 'youtube.com/embed/');
+                          }
+                          return videoData.url;
+                        })()}
+                        className="w-full h-full"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        title="Sign Language Video"
+                      />
+                    ) : (
+                      <video
+                        controls
+                        className="w-full h-full"
+                        poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f3f4f6'/%3E%3Ctext x='200' y='150' text-anchor='middle' font-family='Arial' font-size='16' fill='%236b7280'%3ESign Language Video%3C/text%3E%3C/svg%3E"
+                      >
+                        <source src={videoData.url} type="video/mp4" />
+                        Your browser does not support the video tag.
+                      </video>
+                    )}
                   </div>
 
                   <div className="bg-gray-50 rounded-lg p-4">
